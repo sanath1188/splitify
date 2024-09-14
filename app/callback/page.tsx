@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
 import SpotifyWebApi from 'spotify-web-api-js';
 
@@ -8,9 +8,9 @@ const spotifyApi = new SpotifyWebApi();
 
 const Callback: React.FC = () => {
   const router = useRouter(); // Correct usage in app directory
+  const [username, setUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    // Extract the token from the URL hash
     const hash = window.location.hash.substring(1).split('&').reduce((initial: any, item) => {
       const parts = item.split('=');
       initial[parts[0]] = decodeURIComponent(parts[1]);
@@ -20,21 +20,16 @@ const Callback: React.FC = () => {
     const accessToken = hash.access_token;
 
     if (accessToken) {
-      // Set the access token in the Spotify API instance
       spotifyApi.setAccessToken(accessToken);
 
-      // Fetch user's playlists
-      spotifyApi.getUserPlaylists()
-        .then((playlists) => {
-          console.log(playlists);
-          // Do something with the playlists, like saving them to state
-        })
-        .catch((err) => {
-          console.error('Error fetching playlists: ', err);
-        });
+      spotifyApi.getMe().then((userData: any) => {
+        localStorage.setItem('spotifyUser', userData);
+        localStorage.setItem('spotifyToken', accessToken);
+        console.log(userData)
+        setUsername(userData.display_name);
+      });
 
-      // Optionally navigate back to home after setting the token and fetching playlists
-      router.push('/dashboard'); // Use the correct navigation method
+      router.push('/dashboard');
     }
   }, [router]);
 

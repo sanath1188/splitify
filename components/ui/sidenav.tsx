@@ -1,3 +1,3 @@
 export default function Sidenav() {
-  return <>Sidera naanu</>
+  return <>Empty side</>
 }
