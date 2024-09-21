@@ -1,5 +1,6 @@
 "use client"
 import React from "react";
+import { Button } from "./button";
 
 const Header: React.FC = () => {
 
@@ -20,12 +21,11 @@ const Header: React.FC = () => {
         <h1 className="text-4xl font-bold tracking-wide retro-title">
           Retrofy
         </h1>
-        <button
-          className="spotify-btn hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-full shadow-lg transition-all duration-200 ease-in-out"
+        <Button
           onClick={loginToSpotify}
         >
           Log in with Spotify
-        </button>
+        </Button>
       </div>
       <style jsx>{`
         .retro-title {
