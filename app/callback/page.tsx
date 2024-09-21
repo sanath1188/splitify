@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter from next/navigation
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import SpotifyWebApi from 'spotify-web-api-js';
+import useUserStore from '@/lib/store/useUserStore';
 
 const spotifyApi = new SpotifyWebApi();
 
 const Callback: React.FC = () => {
-  const router = useRouter(); // Correct usage in app directory
-  const [username, setUsername] = useState<string | null>(null);
+  const router = useRouter();
+  const setUser = useUserStore((state) => state.setUser);
+  const setAccessToken = useUserStore((state) => state.setAccessToken);
 
   useEffect(() => {
     const hash = window.location.hash.substring(1).split('&').reduce((initial: any, item) => {
@@ -23,15 +25,14 @@ const Callback: React.FC = () => {
       spotifyApi.setAccessToken(accessToken);
 
       spotifyApi.getMe().then((userData: any) => {
-        localStorage.setItem('spotifyUser', userData);
-        localStorage.setItem('spotifyToken', accessToken);
-        console.log(userData)
-        setUsername(userData.display_name);
-      });
+        setUser(userData);
+        setAccessToken(accessToken);
+        console.log(userData);
 
-      router.push('/dashboard');
+        router.push('/dashboard');
+      });
     }
-  }, [router]);
+  }, [router, setUser, setAccessToken]);
 
   return (
     <div>

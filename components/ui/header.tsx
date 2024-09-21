@@ -1,12 +1,13 @@
 "use client"
 import React from "react";
 import { Button } from "./button";
+import useUserStore from "@/lib/store/useUserStore";
 
 const Header: React.FC = () => {
-
   const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_KEY;
   const redirectUri = 'http://localhost:3000/callback';
   const scopes = ['user-read-private', 'playlist-read-private', 'playlist-modify-public'];
+  const user = useUserStore((state) => state.user);
 
   const loginToSpotify = () => {
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(
@@ -21,17 +22,21 @@ const Header: React.FC = () => {
         <h1 className="text-4xl font-bold tracking-wide retro-title">
           Retrofy
         </h1>
-        <Button
-          onClick={loginToSpotify}
-        >
-          Log in with Spotify
-        </Button>
+        
+        {user ? (
+          <div className="text-white text-lg">Hi, {user.display_name}</div>
+        ) : (
+          <Button
+            onClick={loginToSpotify}
+          >
+            Log in with Spotify
+          </Button>
+        )}
       </div>
       <style jsx>{`
         .retro-title {
-          font-family: 'Montserrat', sans-serif;
           letter-spacing: 2px;
-          color: #E5D0CC;
+          // color: #E5D0CC;
         }
         .header-bg {
           background: #172121;

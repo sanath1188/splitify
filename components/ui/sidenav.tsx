@@ -1,3 +1,7 @@
 export default function Sidenav() {
-  return <>Empty side</>
+  return <>
+    <div>
+      Playlists
+    </div>
+  </>
 }
