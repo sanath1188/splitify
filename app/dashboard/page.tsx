@@ -12,6 +12,7 @@ const spotifyApi = new SpotifyWebApi();
 
 export default function Dashboard() {
   const [playlists, setPlaylists] = useState<any[]>([]);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<any | null>(null); // New state for selected playlist
   const user = useUserStore((state) => state.user);
   const accessToken = useUserStore((state) => state.accessToken);
 
@@ -27,84 +28,62 @@ export default function Dashboard() {
       // Fetch user's playlists
       spotifyApi.getUserPlaylists().then((data) => {
         const fetchedPlaylists = data.items
-        .filter((playlist: any) => playlist !== null 
-        // && playlist.owner.id === user.id
-      )
-          .map((playlist: any) => ({
-            id: playlist.id,
-            name: playlist.name,
-            description: playlist.description,
-            external_urls: playlist.external_urls,
-            href: playlist.href,
-            images: playlist.images,
-            owner: playlist.owner,
-            public: playlist.public,
-            snapshot_id: playlist.snapshot_id,
-            tracks: playlist.tracks,
-            type: playlist.type,
-            uri: playlist.uri,
-          }));
-        console.log(fetchedPlaylists);
-        setPlaylists(fetchedPlaylists);
+          .filter((playlist: any) => playlist !== null)
+          .map((playlist: any) => playlist.id);
+
+        // Fetch full details for each playlist
+        Promise.all(
+          fetchedPlaylists.map((playlistId: string) =>
+            spotifyApi.getPlaylist(playlistId)
+          )
+        ).then((detailedPlaylists) => {
+          setPlaylists(detailedPlaylists);
+        });
       });
     }
   }, [accessToken]);
 
+  const handlePlaylistClick = (playlistId: string) => {
+    // Fetch details of the selected playlist
+    spotifyApi.getPlaylist(playlistId).then((data) => {
+      console.log(data)
+      setSelectedPlaylist(data);
+    });
+  };
+
   return (
-    // <div className="container w-full">
-    //   {user ? (
-    //     <>
-    //       <h1 className="text-2xl font-bold mb-4">Playlists by {user?.display_name}</h1>
-    //       {/* Render playlists as cards */}
-    //       {playlists.length > 0 ? (
-    //         <div className="grid grid-cols-4 gap-4 w-full">
-    //           {playlists.map((playlist) => (
-    //             <Card key={playlist.id} className='bg-red h-fit'>
-    //               <CardHeader className='items-center'>
-    //                 <img src={playlist.images[0]?.url} alt={playlist.name} width={150} height={150}/>
-    //               </CardHeader>
-    //               <CardContent>
-    //                 <div className='truncate font-semibold text-lg text-white'>{playlist.name}</div>
-    //                 <div className='truncate text-sm text-white'>Total songs: {playlist.tracks.total}</div>
-    //               </CardContent>
-    //               <CardFooter>
-    //                 <Button className='w-full' href={playlist.external_urls.spotify} target="_blank">
-    //                   Open in Spotify
-    //                 </Button>
-    //               </CardFooter>
-    //             </Card>
-    //           ))}
-    //         </div>
-    //       ) : (
-    //         <p>No playlists found.</p>
-    //       )}
-    //     </>
-    //   ) : (
-    //     <p>Loading user data...</p>
-    //   )}
-    // </div>
-    <div className="container w-full">
-    {user ? (
-      <>
-        <h1 className="text-2xl font-bold mb-4">Playlists by {user?.display_name}</h1>
-        {/* Render playlists as badges */}
-        {playlists.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {playlists.map((playlist) => (
-              <Badge key={playlist.id} className="text-white cursor-pointer">
-                <div className='text-sm' onClick={() => {playlist.isSelected = true;}}>
-                {playlist.name}
-                </div>
-              </Badge>
-            ))}
-          </div>
-        ) : (
-          <p>No playlists found.</p>
-        )}
-      </>
-    ) : (
-      <p>Loading user data...</p>
-    )}
-  </div>
+    <div className="container w-full bg-neutral">
+      {user ? (
+        <>
+          <h1 className="text-2xl font-bold mb-4">Playlists by {user?.display_name}</h1>
+          {/* Render playlists as badges */}
+          {playlists.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {playlists.map((playlist) => (
+                <Badge key={playlist.id} className="text-white cursor-pointer">
+                  <div className='text-sm' onClick={() => handlePlaylistClick(playlist.id)}>
+                    {playlist.name}
+                  </div>
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p>No playlists found.</p>
+          )}
+          {/* Display selected playlist details */}
+          {selectedPlaylist && (
+            <div className="mt-4 p-4 border rounded">
+              <h2 className="text-xl font-bold">{selectedPlaylist.name}</h2>
+              <img src={selectedPlaylist.images[0]?.url} alt={selectedPlaylist.name} width={150} height={150}/>
+              <p dangerouslySetInnerHTML={{ __html: selectedPlaylist.description }}></p>
+              <p>Tracks: {selectedPlaylist.tracks.total}</p>
+              {/* Add more details as needed */}
+            </div>
+          )}
+        </>
+      ) : (
+        <p>Loading user data...</p>
+      )}
+    </div>
   );
 }
