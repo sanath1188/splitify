@@ -72,12 +72,12 @@ export default function Dashboard() {
           )}
           {/* Display selected playlist details */}
           {selectedPlaylist && (
-            <div className="mt-4 p-4 border rounded">
-              <h2 className="text-xl font-bold">{selectedPlaylist.name}</h2>
-              <img src={selectedPlaylist.images[0]?.url} alt={selectedPlaylist.name} width={150} height={150}/>
-              <p dangerouslySetInnerHTML={{ __html: selectedPlaylist.description }}></p>
-              <p>Tracks: {selectedPlaylist.tracks.total}</p>
-              {/* Add more details as needed */}
+            <div className="mt-10 p-4 border border-ring rounded">
+              <h2 className="text-xl font-semibold">{selectedPlaylist.name}</h2>
+              <img className='mt-2' src={selectedPlaylist.images[0]?.url} alt={selectedPlaylist.name} width={150} height={150}/>
+              <p className='text-sm text-gray-800 mt-2' dangerouslySetInnerHTML={{ __html: selectedPlaylist.description }}></p>
+              <p className='mt-1 text-sm'>Tracks: {selectedPlaylist.tracks.total}</p>
+              
             </div>
           )}
         </>
