@@ -1,0 +1,50 @@
+@tailwind base;
+
+@layer base {
+  :root {
+    --white: #ffffff;
+    --white-10: #ffffff1a; /* white with 10% opacity in HEX */
+    --white-20: #ffffff33; /* white with 20% opacity in HEX */
+    --white-30: #ffffff4d; /* white with 30% opacity in HEX */
+    --white-40: #ffffff66; /* white with 40% opacity in HEX */
+    --white-50: #ffffff80; /* white with 50% opacity in HEX */
+    --white-60: #ffffff99; /* white with 60% opacity in HEX */
+    --white-70: #ffffffb3; /* white with 70% opacity in HEX */
+    --white-80: #ffffffcc; /* white with 80% opacity in HEX */
+    --white-90: #ffffffe6; /* white with 90% opacity in HEX */
+
+    --black: #000000;
+
+    --gray-50: #f9fafb;
+
+    --blue-50: #e0e3fa;
+    --blue-100: #bdc3f5;
+    --blue-200: #9aa2f0;
+    --blue-300: #7782eb;
+    --blue-400: #5462e5;
+    --blue-500: #3142e0;
+    --blue-500-90: #3142e0e6; /* blue-500 with 90% opacity in HEX */
+    --blue-600: #2937ba;
+    --blue-700: #202c94;
+    --blue-700-90: #202c94e6; /* blue-700 with 90% opacity in HEX */
+    --blue-800: #18206e;
+    --blue-900: #101548;
+    --blue-1000: #070a22;
+
+    --x-blue-600: #2563eb;
+
+    --netural-100: #f5f5f5;
+    --netural-100-80: #f5f5f5cc; /* neutral with 80% opacity in HEX */
+    --netural-200: #e5e5e5;
+    --netural-300: #d4d4d4;
+    --netural-500: #737373;
+    --netural-600: #525252;
+    --netural-800: #262626;
+    --netural-900: #171717;
+
+    --red-450: #f45b5b;
+    --red-500: #ef4444;
+    --red-600: #dc2626;
+    --red-700: #b91c1c;
+  }
+}

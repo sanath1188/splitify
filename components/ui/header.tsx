@@ -2,6 +2,7 @@
 import React from "react";
 import { Button } from "./button";
 import useUserStore from "@/lib/store/useUserStore";
+import { User2Icon } from "lucide-react";
 
 const Header: React.FC = () => {
   const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_KEY;
@@ -17,14 +18,17 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="header-bg py-4 shadow-md">
+    <header className="bg-accent py-4">
       <div className="ml-5 mr-5 w-100 flex justify-between items-center">
-        <h1 className="text-4xl font-bold tracking-wide retro-title">
+        <h1 className="text-4xl font-bold tracking-wide">
           Retrofy
         </h1>
         
         {user ? (
-          <div className="text-white text-lg">Hi, {user.display_name}</div>
+          <div className="text-black text-lg flex items-center">
+            <User2Icon className="mr-2" size={18}></User2Icon>
+              Hi, {user.display_name}
+          </div>
         ) : (
           <Button
             onClick={loginToSpotify}
@@ -33,18 +37,6 @@ const Header: React.FC = () => {
           </Button>
         )}
       </div>
-      <style jsx>{`
-        .retro-title {
-          letter-spacing: 2px;
-          // color: #E5D0CC;
-        }
-        .header-bg {
-          background: #172121;
-        }
-        .spotify-btn {
-          background: #E5D0CC;
-        }
-      `}</style>
     </header>
   );
 };

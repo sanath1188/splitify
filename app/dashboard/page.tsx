@@ -3,9 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import useUserStore from '@/lib/store/useUserStore';
-import Image from 'next/image';
+import { Badge } from '@/components/ui/badge';
 import React, { useEffect, useState } from 'react';
 import SpotifyWebApi from 'spotify-web-api-js';
+import { Tooltip } from '@/components/ui/tooltip'; // Assuming you have a Tooltip component
 
 const spotifyApi = new SpotifyWebApi();
 
@@ -26,7 +27,9 @@ export default function Dashboard() {
       // Fetch user's playlists
       spotifyApi.getUserPlaylists().then((data) => {
         const fetchedPlaylists = data.items
-          .filter((playlist: any) => playlist !== null) // Filter out null items
+        .filter((playlist: any) => playlist !== null 
+        // && playlist.owner.id === user.id
+      )
           .map((playlist: any) => ({
             id: playlist.id,
             name: playlist.name,
@@ -48,37 +51,60 @@ export default function Dashboard() {
   }, [accessToken]);
 
   return (
+    // <div className="container w-full">
+    //   {user ? (
+    //     <>
+    //       <h1 className="text-2xl font-bold mb-4">Playlists by {user?.display_name}</h1>
+    //       {/* Render playlists as cards */}
+    //       {playlists.length > 0 ? (
+    //         <div className="grid grid-cols-4 gap-4 w-full">
+    //           {playlists.map((playlist) => (
+    //             <Card key={playlist.id} className='bg-red h-fit'>
+    //               <CardHeader className='items-center'>
+    //                 <img src={playlist.images[0]?.url} alt={playlist.name} width={150} height={150}/>
+    //               </CardHeader>
+    //               <CardContent>
+    //                 <div className='truncate font-semibold text-lg text-white'>{playlist.name}</div>
+    //                 <div className='truncate text-sm text-white'>Total songs: {playlist.tracks.total}</div>
+    //               </CardContent>
+    //               <CardFooter>
+    //                 <Button className='w-full' href={playlist.external_urls.spotify} target="_blank">
+    //                   Open in Spotify
+    //                 </Button>
+    //               </CardFooter>
+    //             </Card>
+    //           ))}
+    //         </div>
+    //       ) : (
+    //         <p>No playlists found.</p>
+    //       )}
+    //     </>
+    //   ) : (
+    //     <p>Loading user data...</p>
+    //   )}
+    // </div>
     <div className="container w-full">
-      {user ? (
-        <>
-          <h1 className="text-2xl font-bold mb-4">Playlists by {user?.display_name}</h1>
-          {/* Render playlists as cards */}
-          {playlists.length > 0 ? (
-            <div className="grid grid-cols-4 gap-4 w-full">
-              {playlists.map((playlist) => (
-                <Card key={playlist.id} className='bg-red h-fit'>
-                  <CardHeader className='items-center'>
-                    <img src={playlist.images[0]?.url} alt={playlist.name} width={150} height={150}/>
-                  </CardHeader>
-                  <CardContent>
-                    <div className='truncate font-semibold text-lg text-white'>{playlist.name}</div>
-                    <div className='truncate text-sm text-white'>Total songs: {playlist.tracks.total}</div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button className='w-full' href={playlist.external_urls.spotify} target="_blank">
-                      Open in Spotify
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <p>No playlists found.</p>
-          )}
-        </>
-      ) : (
-        <p>Loading user data...</p>
-      )}
-    </div>
+    {user ? (
+      <>
+        <h1 className="text-2xl font-bold mb-4">Playlists by {user?.display_name}</h1>
+        {/* Render playlists as badges */}
+        {playlists.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {playlists.map((playlist) => (
+              <Badge key={playlist.id} className="text-white cursor-pointer">
+                <div className='text-sm' onClick={() => {playlist.isSelected = true;}}>
+                {playlist.name}
+                </div>
+              </Badge>
+            ))}
+          </div>
+        ) : (
+          <p>No playlists found.</p>
+        )}
+      </>
+    ) : (
+      <p>Loading user data...</p>
+    )}
+  </div>
   );
 }
