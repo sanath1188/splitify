@@ -20,6 +20,9 @@ const nextConfig = {
 		// set Argon as an external dependency to prevent it from getting bundled
 		serverComponentsExternalPackages: ["@node-rs/argon2"],
 	},
+	images: {
+		domains: ["mosaic.scdn.co", ""],
+	},
 };
 
 export default nextConfig;
