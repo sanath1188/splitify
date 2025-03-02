@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/ca
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { SpotifyPlaylist, SpotifyTrack } from '@/app/types/spotify';
-import { Download, LineChart } from 'lucide-react';
+import { Download, LineChart, Trash2, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import spotifyService from '@/app/services/spotify.service';
 import { addDays } from "date-fns";
@@ -16,14 +16,26 @@ import { DateTimePicker } from '../ui/datetime-picker';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface PlaylistCardProps {
   playlist: SpotifyPlaylist;
   onViewTracks: () => void;
   onAnalysisComplete: (tracks: SpotifyTrack[]) => void;
+  onPlaylistDeleted?: (playlistId: string) => void;
 }
 
-export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: PlaylistCardProps) {
+export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete, onPlaylistDeleted }: PlaylistCardProps) {
   const [isFetchingAll, setIsFetchingAll] = useState(false);
   const [progress, setProgress] = useState(0);
   const [analyzedTracks, setAnalyzedTracks] = useState<SpotifyTrack[]>([]);
@@ -32,6 +44,8 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
   const [toDate, setToDate] = useState<Date | undefined>(new Date());
   const [showAnalyzeHint, setShowAnalyzeHint] = useState(true);
   const [isCreatingPlaylist, setIsCreatingPlaylist] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -190,6 +204,30 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
     }
   };
 
+  const handleDeletePlaylist = async () => {
+    setIsDeleting(true);
+    try {
+      await spotifyService.deletePlaylist(playlist.id);
+      toast.success("Playlist deleted", {
+        description: `"${playlist.name}" has been deleted.`,
+      });
+      
+      // Call the callback if it exists
+      if (onPlaylistDeleted) {
+        onPlaylistDeleted(playlist.id);
+      }
+      
+      setShowDeleteDialog(false);
+    } catch (error: any) {
+      console.error('Error deleting playlist:', error);
+      toast.error("Failed to delete playlist", {
+        description: error.message || "An error occurred while deleting the playlist.",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="grid gap-6 w-full">
       {/* Main Card */}
@@ -276,6 +314,49 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
                   >
                     View Tracks
                   </Button>
+                  
+                  <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="lg"
+                        className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Trash2 className="h-4 w-4" />
+                          Delete Playlist
+                        </span>
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                          <AlertTriangle className="h-5 w-5 text-red-500" />
+                          Delete Playlist
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete "{playlist.name}"? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeletePlaylist}
+                          disabled={isDeleting}
+                          className="bg-red-500 hover:bg-red-600"
+                        >
+                          {isDeleting ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Deleting...
+                            </span>
+                          ) : (
+                            "Delete Playlist"
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
 
                 {/* Analysis Progress */}

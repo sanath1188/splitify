@@ -115,6 +115,15 @@ class SpotifyService {
       this.handleError(error);
     }
   }
+
+  async deletePlaylist(playlistId: string) {
+    try {
+      // The Spotify API method is called "unfollowPlaylist" rather than "deletePlaylist"
+      return await this.spotifyApi.unfollowPlaylist(playlistId);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
 }
 
 export default SpotifyService.getInstance();

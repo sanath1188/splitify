@@ -106,6 +106,16 @@ export default function Dashboard() {
     setShowTracks(true);
   };
 
+  const handlePlaylistDeleted = (playlistId: string) => {
+    setPlaylists(prevPlaylists => 
+      prevPlaylists.filter(p => p.id !== playlistId)
+    );
+    
+    if (selectedPlaylist?.id === playlistId) {
+      setSelectedPlaylist(null);
+    }
+  };
+
   return (
     <div className="container max-w-6xl mx-auto py-6">
       {user ? (
@@ -144,6 +154,7 @@ export default function Dashboard() {
                       playlist={selectedPlaylist}
                       onViewTracks={handleViewTracks}
                       onAnalysisComplete={handleAnalysisComplete}
+                      onPlaylistDeleted={handlePlaylistDeleted}
                     />
                    
                   </CardHeader>
