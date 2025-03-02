@@ -7,12 +7,12 @@ import { Download, LineChart } from 'lucide-react';
 import { useState } from 'react';
 import spotifyService from '@/app/services/spotify.service';
 import { addDays } from "date-fns";
-import { DateRange } from "react-day-picker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
-import { DatePickerWithRange } from '../ui/date-range-picker';
 import { motion } from "framer-motion";
 import { Sparkles, Clock, Music2, Calendar } from "lucide-react";
+import { addMonths, subMonths } from 'date-fns';
+import { DateTimePicker } from '../ui/datetime-picker';
 
 interface PlaylistCardProps {
   playlist: SpotifyPlaylist;
@@ -25,10 +25,8 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
   const [progress, setProgress] = useState(0);
   const [analyzedTracks, setAnalyzedTracks] = useState<SpotifyTrack[]>([]);
   const [showDateRange, setShowDateRange] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -365),
-    to: new Date(),
-  });
+  const [fromDate, setFromDate] = useState<Date | undefined>(addDays(new Date(), -365));
+  const [toDate, setToDate] = useState<Date | undefined>(new Date());
   const [showAnalyzeHint, setShowAnalyzeHint] = useState(true);
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -117,13 +115,12 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
   };
 
   const handleBranchPlaylist = () => {
-    console.log("here")
-    if (analyzedTracks.length && dateRange?.from && dateRange?.to) {
+    if (analyzedTracks.length && fromDate && toDate) {
       const filteredTracks = analyzedTracks.filter(item => {
         const releaseDate = new Date(item.track.album.release_date);
-        return releaseDate >= dateRange.from! && releaseDate <= dateRange.to!;
+        return releaseDate >= fromDate && releaseDate <= toDate;
       });
-      console.log(filteredTracks)
+      console.log(filteredTracks);
       onAnalysisComplete(filteredTracks);
     }
   };
@@ -239,31 +236,59 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="space-y-4"
+                  className="space-y-6"
                 >
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
+                      <Calendar className="h-4 w-4 text-primary" />
                       <span>Filter by Release Date</span>
                     </div>
-                    <DatePickerWithRange 
-                      date={dateRange}
-                      onDateChange={setDateRange}
-                    />
+                    
+                    <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">From</label>
+                        <DateTimePicker
+                          value={fromDate}
+                          onChange={setFromDate}
+                          hideTime
+                          max={toDate}
+                          clearable
+                          classNames={{
+                            trigger: "w-full bg-background/50 border-primary/10"
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm text-muted-foreground">To</label>
+                        <DateTimePicker
+                          value={toDate}
+                          onChange={setToDate}
+                          hideTime
+                          min={fromDate}
+                          max={new Date()}
+                          clearable
+                          classNames={{
+                            trigger: "w-full bg-background/50 border-primary/10"
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Branch Playlist Button */}
+                    <Button
+                      size="lg"
+                      onClick={handleBranchPlaylist}
+                      className="w-full"
+                      variant="secondary"
+                      disabled={!fromDate || !toDate}
+                    >
+                      <span className="flex items-center gap-2">
+                        <LineChart className="h-4 w-4" />
+                        Branch Playlist by Date Range
+                      </span>
+                    </Button>
                   </div>
-                  
-                  {/* Branch Playlist Button */}
-                  <Button
-                    size="lg"
-                    onClick={handleBranchPlaylist}
-                    className="w-full"
-                    variant="secondary"
-                  >
-                    <span className="flex items-center gap-2">
-                      <LineChart className="h-4 w-4" />
-                      Branch Playlist by Date Range
-                    </span>
-                  </Button>
                 </motion.div>
               )}
             </div>
