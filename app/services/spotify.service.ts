@@ -95,6 +95,26 @@ class SpotifyService {
       throw error;
     }
   }
+
+  async createPlaylist(userId: string, options: { 
+    name: string; 
+    description?: string; 
+    public?: boolean;
+  }) {
+    try {
+      return await this.spotifyApi.createPlaylist(userId, options);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async addTracksToPlaylist(playlistId: string, trackUris: string[]) {
+    try {
+      return await this.spotifyApi.addTracksToPlaylist(playlistId, trackUris);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
 }
 
 export default SpotifyService.getInstance();

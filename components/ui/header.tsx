@@ -7,7 +7,12 @@ import { User2Icon } from "lucide-react";
 const Header: React.FC = () => {
   const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_KEY;
   const redirectUri = 'http://localhost:3000/callback';
-  const scopes = ['user-read-private', 'playlist-read-private', 'playlist-modify-public'];
+  const scopes = [
+    'user-read-private', 
+    'playlist-read-private', 
+    'playlist-modify-public',
+    'playlist-modify-private'
+  ];
   const user = useUserStore((state) => state.user);
 
   const loginToSpotify = () => {

@@ -13,6 +13,9 @@ import { motion } from "framer-motion";
 import { Sparkles, Clock, Music2, Calendar } from "lucide-react";
 import { addMonths, subMonths } from 'date-fns';
 import { DateTimePicker } from '../ui/datetime-picker';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 interface PlaylistCardProps {
   playlist: SpotifyPlaylist;
@@ -28,6 +31,7 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
   const [fromDate, setFromDate] = useState<Date | undefined>(addDays(new Date(), -365));
   const [toDate, setToDate] = useState<Date | undefined>(new Date());
   const [showAnalyzeHint, setShowAnalyzeHint] = useState(true);
+  const [isCreatingPlaylist, setIsCreatingPlaylist] = useState(false);
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -114,13 +118,90 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
     }
   };
 
+  const createPlaylistFromFiltered = async (filteredTracks: SpotifyTrack[]) => {
+    if (!filteredTracks.length || !fromDate || !toDate) return;
+    
+    setIsCreatingPlaylist(true);
+    
+    try {
+      // Format dates for the playlist name
+      const fromDateStr = format(fromDate, 'MMM d, yyyy');
+      const toDateStr = format(toDate, 'MMM d, yyyy');
+      const playlistName = `${playlist.name} (${fromDateStr} - ${toDateStr})`;
+      
+      // Create a new playlist
+      const user = await spotifyService.getCurrentUser();
+      const newPlaylist = await spotifyService.createPlaylist(
+        user?.id || '',
+        {
+          name: playlistName,
+          description: `Filtered tracks from "${playlist.name}" released between ${fromDateStr} and ${toDateStr}`,
+          public: false
+        }
+      );
+      
+      if (!newPlaylist) {
+        throw new Error("Failed to create playlist");
+      }
+      
+      // Add tracks to the playlist in batches
+      const trackUris = filteredTracks.map(item => item.track.uri);
+      const BATCH_SIZE = 100;
+      
+      for (let i = 0; i < trackUris.length; i += BATCH_SIZE) {
+        const batch = trackUris.slice(i, i + BATCH_SIZE);
+        await spotifyService.addTracksToPlaylist(newPlaylist.id, batch);
+      }
+      
+      toast.success("Playlist created!", {
+        description: `Created "${playlistName}" with ${filteredTracks.length} tracks`,
+      });
+      
+    } catch (error: any) {
+      console.error('Error creating playlist:', error);
+      
+      // Check for specific error types
+      if (error?.message?.includes("Insufficient client scope") || 
+          error?.status === 403) {
+        toast.error("Permission denied", {
+          description: "You need to re-login with additional permissions to create playlists.",
+          action: {
+            label: "Logout",
+            onClick: () => {
+              // Clear user data and redirect to login
+              localStorage.removeItem('spotify-user-store');
+              window.location.href = '/';
+            }
+          }
+        });
+      } else {
+        toast.error("Error creating playlist", {
+          description: "There was an error creating your playlist. Please try again.",
+        });
+      }
+    } finally {
+      setIsCreatingPlaylist(false);
+    }
+  };
+
   const handleBranchPlaylist = () => {
     if (analyzedTracks.length && fromDate && toDate) {
       const filteredTracks = analyzedTracks.filter(item => {
         const releaseDate = new Date(item.track.album.release_date);
         return releaseDate >= fromDate && releaseDate <= toDate;
       });
-      console.log(filteredTracks);
+      
+      if (filteredTracks.length === 0) {
+        toast.error("No tracks found", {
+          description: "No tracks match the selected date range.",
+        });
+        return;
+      }
+      
+      // Create a new playlist with the filtered tracks
+      createPlaylistFromFiltered(filteredTracks);
+      
+      // Also pass the filtered tracks to the parent component
       onAnalysisComplete(filteredTracks);
     }
   };
@@ -229,6 +310,7 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
                     </p>
                   </div>
                 )}
+
               </div>
 
               {/* Date Range - Only shown after analysis */}
@@ -276,19 +358,26 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
                       </div>
                     </div>
 
-                    {/* Branch Playlist Button */}
-                    <Button
-                      size="lg"
-                      onClick={handleBranchPlaylist}
-                      className="w-full"
-                      variant="secondary"
-                      disabled={!fromDate || !toDate}
-                    >
-                      <span className="flex items-center gap-2">
-                        <LineChart className="h-4 w-4" />
-                        Branch Playlist by Date Range
-                      </span>
-                    </Button>
+                                    {/* Branch Playlist Button */}
+                <Button
+                  size="lg"
+                  onClick={handleBranchPlaylist}
+                  className="w-full"
+                  variant="secondary"
+                  disabled={!fromDate || !toDate || isCreatingPlaylist}
+                >
+                  {isCreatingPlaylist ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Creating Playlist...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <LineChart className="h-4 w-4" />
+                      Create Filtered Playlist
+                    </span>
+                  )}
+                </Button>
                   </div>
                 </motion.div>
               )}
