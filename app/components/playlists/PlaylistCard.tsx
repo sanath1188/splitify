@@ -126,10 +126,10 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
   };
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-6 w-full">
       {/* Main Card */}
-      <Card className="overflow-hidden bg-gradient-to-br from-background to-muted">
-        <div className="flex flex-col lg:flex-row lg:items-stretch">
+      <Card className="overflow-hidden bg-gradient-to-br from-background to-muted w-full">
+        <div className="flex flex-col lg:flex-row lg:items-stretch w-full">
           {/* Left Section - Cover Art */}
           <div className="relative lg:w-[400px] aspect-square">
             {playlist.images[0]?.url && (
@@ -166,8 +166,8 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
           </div>
 
           {/* Right Section - Controls */}
-          <div className="flex-1 p-8 flex flex-col">
-            <div className="space-y-8">
+          <div className="flex-1 p-8 flex flex-col w-full">
+            <div className="space-y-8 w-full">
               {/* Description */}
               {playlist.description && (
                 <div className="prose prose-sm dark:prose-invert">
@@ -236,16 +236,17 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="space-y-6"
+                  className="space-y-6 w-full"
                 >
-                  <div className="space-y-4">
+                  <div className="space-y-4 w-full">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Calendar className="h-4 w-4 text-primary" />
                       <span>Filter by Release Date</span>
                     </div>
                     
-                    <div className="grid gap-4">
-                      <div className="space-y-2">
+                    {/* Date pickers side by side */}
+                    <div className="flex gap-4 w-full">
+                      <div className="flex-1 space-y-2">
                         <label className="text-sm text-muted-foreground">From</label>
                         <DateTimePicker
                           value={fromDate}
@@ -259,7 +260,7 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
                         />
                       </div>
                       
-                      <div className="space-y-2">
+                      <div className="flex-1 space-y-2">
                         <label className="text-sm text-muted-foreground">To</label>
                         <DateTimePicker
                           value={toDate}
