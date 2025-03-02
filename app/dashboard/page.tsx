@@ -1,28 +1,34 @@
 "use client";
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import useUserStore from '@/lib/store/useUserStore';
 import { Badge } from '@/components/ui/badge';
 import React, { useEffect, useState } from 'react';
-import { Tooltip } from '@/components/ui/tooltip'; // Assuming you have a Tooltip component
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import spotifyService from '../services/spotify.service';
+import { Loader2 } from "lucide-react";
+import Image from 'next/image';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
   const [playlists, setPlaylists] = useState<any[]>([]);
-  const [selectedPlaylist, setSelectedPlaylist] = useState<any | null>(null); // New state for selected playlist
+  const [selectedPlaylist, setSelectedPlaylist] = useState<any | null>(null);
   const user = useUserStore((state) => state.user);
   const accessToken = useUserStore((state) => state.accessToken);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isPlaylistLoading, setIsPlaylistLoading] = useState(false);
 
   useEffect(() => {
-    // Wait for accessToken to be available before proceeding
     if (accessToken) {
       console.log("accessToken", accessToken);
       console.log("user", user);
 
       spotifyService.setAccessToken(accessToken);
 
-      // Fetch user's playlists
+      setIsLoading(true);
       spotifyService.getUserPlaylists().then((data) => {
         const myPlaylists = data.items.filter((playlist: any) => playlist?.owner.id === user.id);
 
@@ -32,61 +38,126 @@ export default function Dashboard() {
           .map((playlist: any) => playlist.id);
           console.log(fetchedPlaylists)
 
-
-        // Fetch full details for each playlist
         Promise.all(
           fetchedPlaylists.map((playlistId: string) =>
             spotifyService.getPlaylist(playlistId)
           )
         ).then((detailedPlaylists) => {
           console.log(detailedPlaylists)
-          // const sortedPlaylists = detailedPlaylists.sort((a,b) =>  b?.tracks.total - a?.tracks.total)
-          setPlaylists(detailedPlaylists);
+          const sortedPlaylists = detailedPlaylists.sort((a,b) =>  b?.tracks.total - a?.tracks.total)
+          setPlaylists(sortedPlaylists);
+          setIsLoading(false);
+          
+          if (sortedPlaylists.length > 0) {
+            handlePlaylistClick(sortedPlaylists[0].id);
+          }
         });
       });
     }
   }, [accessToken]);
 
   const handlePlaylistClick = (playlistId: string) => {
-    // Fetch details of the selected playlist
+    setIsPlaylistLoading(true);
     spotifyService.getPlaylist(playlistId).then((data) => {
       console.log(data)
       setSelectedPlaylist(data);
+      setIsPlaylistLoading(false);
     });
   };
 
   return (
-    <div className="container w-full bg-neutral">
+    <div className="container max-w-6xl mx-auto py-6">
       {user ? (
         <>
-          <h1 className="text-2xl font-bold mb-4">Playlists by {user?.display_name}</h1>
-          {/* Render playlists as badges */}
-          {playlists.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {playlists.map((playlist) => (
-                <Badge key={playlist.id} className="text-white cursor-pointer">
-                  <div className='text-sm' onClick={() => handlePlaylistClick(playlist.id)}>
-                    {playlist.name}
-                  </div>
-                </Badge>
-              ))}
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight mb-2">Your Playlists</h1>
+              <p className="text-muted-foreground">
+                Manage and organize your Spotify playlists
+              </p>
             </div>
-          ) : (
-            <p>No playlists found.</p>
-          )}
-          {/* Display selected playlist details */}
-          {selectedPlaylist && (
-            <div className="mt-10 p-4 border border-ring rounded">
-              <h2 className="text-xl font-semibold">{selectedPlaylist.name}</h2>
-              <img className='mt-2' src={selectedPlaylist.images[0]?.url} alt={selectedPlaylist.name} width={150} height={150}/>
-              <p className='text-sm text-gray-800 mt-2' dangerouslySetInnerHTML={{ __html: selectedPlaylist.description }}></p>
-              <p className='mt-1 text-sm'>Tracks: {selectedPlaylist.tracks.total}</p>
-              
-            </div>
-          )}
+
+            {isLoading ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Loading playlists...</span>
+              </div>
+            ) : (
+                <div className="flex flex-wrap gap-2">
+                  <TooltipProvider>
+                    {playlists.map((playlist) => (
+                      <Tooltip key={playlist.id}>
+                        <TooltipTrigger>
+                          <Badge 
+                            variant={selectedPlaylist?.id === playlist.id ? "default" : "secondary"}
+                            className={cn(
+                              "cursor-pointer transition-colors",
+                              selectedPlaylist?.id === playlist.id 
+                                ? "hover:bg-primary/90" 
+                                : "hover:bg-secondary/60"
+                            )}
+                            onClick={() => handlePlaylistClick(playlist.id)}
+                          >
+                            <div className="text-sm px-1">
+                              {playlist.name}
+                            </div>
+                          </Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{playlist.tracks.total} tracks</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </TooltipProvider>
+                </div>
+            )}
+
+            {isPlaylistLoading ? (
+              <div className="mt-8 flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Loading playlist...</span>
+              </div>
+            ) : selectedPlaylist && (
+              <div className="mt-8 grid gap-6">
+                <Card>
+                  <CardHeader className="flex flex-row items-center gap-4">
+                    <div className="relative w-[150px] h-[150px]">
+                      <Image
+                        className="object-cover rounded-md"
+                        src={selectedPlaylist.images[0]?.url}
+                        alt={selectedPlaylist.name}
+                        fill
+                        unoptimized
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <CardTitle className="text-2xl">{selectedPlaylist.name}</CardTitle>
+                      <CardDescription 
+                        className="text-sm text-muted-foreground"
+                        dangerouslySetInnerHTML={{ __html: selectedPlaylist.description || 'No description' }}
+                      />
+                      <div className="flex items-center gap-2 !mt-2">
+                        <Badge variant="secondary">
+                          {selectedPlaylist.tracks.total} tracks
+                        </Badge>
+                        <Badge variant="outline">
+                          {selectedPlaylist.public ? 'Public' : 'Private'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </CardHeader>
+                </Card>
+              </div>
+            )}
+          </div>
         </>
       ) : (
-        <p>Loading user data...</p>
+        <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Loading user data...</span>
+          </div>
+        </div>
       )}
     </div>
   );
