@@ -126,22 +126,19 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
           <div className="relative lg:w-[400px] aspect-square">
             {playlist.images[0]?.url && (
               <>
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-background/50 backdrop-blur-sm z-10" />
-                <div className="relative w-full h-full">
-                  <Image
-                    className="object-cover rounded-md"
-                    src={playlist.images[0]?.url}
-                    alt={playlist.name}
-                    fill
-                    unoptimized
-                    priority
-                  />
-                </div>
+                <Image
+                  className="object-cover rounded-md w-full h-full"
+                  src={playlist.images[0].url}
+                  alt={playlist.name}
+                  width={400}
+                  height={400}
+                  priority
+                />
               </>
             )}
             
             {/* Overlay Stats */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col justify-end bg-gradient-to-t from-background/90 via-background/50 to-transparent z-20">
+            <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-background/90 via-background/50 to-transparent z-20 opacity-90">
               <div className="space-y-4">
                 <h2 className="text-4xl font-bold tracking-tight">{playlist.name}</h2>
                 <div className="flex flex-wrap gap-4">
@@ -170,20 +167,20 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
                 </div>
               )}
 
-              {/* Date Range */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>Filter by Release Date</span>
-                </div>
-                <DatePickerWithRange 
-                  date={dateRange}
-                  onDateChange={setDateRange}
-                />
-              </div>
+              {/* Analysis Hint */}
+              {showAnalyzeHint && (
+                  <Alert className="bg-primary/5 border border-primary/10 !mt-5">
+                    <div className="flex items-center gap-2 w-full justify-center">
+                      <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                      <AlertDescription className="text-sm text-primary my-auto">
+                        Analyze your playlist to discover insights and create filtered views
+                      </AlertDescription>
+                    </div>
+                  </Alert>
+              )}
 
               {/* Actions */}
-              <div className="space-y-4">
+              <div className="!mt-5">
                 <div className="flex flex-wrap gap-3">
                   <Button
                     size="lg"
@@ -210,11 +207,7 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
 
                 {/* Analysis Progress */}
                 {isFetchingAll && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-2"
-                  >
+                  <div>
                     <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                       <motion.div 
                         className="h-full bg-primary rounded-full"
@@ -226,24 +219,22 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
                     <p className="text-xs text-muted-foreground text-center">
                       Fetching tracks... {progress}% complete
                     </p>
-                  </motion.div>
+                  </div>
                 )}
               </div>
 
-              {/* Analysis Hint */}
-              {showAnalyzeHint && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <Alert className="bg-primary/5 border border-primary/10">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <AlertDescription className="text-sm text-primary">
-                      Analyze your playlist to discover insights and create filtered views
-                    </AlertDescription>
-                  </Alert>
-                </motion.div>
-              )}
+              {/* Date Range */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>Filter by Release Date</span>
+                </div>
+                <DatePickerWithRange 
+                  date={dateRange}
+                  onDateChange={setDateRange}
+                />
+              </div>
+              
             </div>
           </div>
         </div>

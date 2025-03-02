@@ -29,9 +29,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (accessToken) {
-      console.log("accessToken", accessToken);
-      console.log("user", user);
-
       spotifyService.setAccessToken(accessToken);
 
       setIsLoading(true);
@@ -65,7 +62,6 @@ export default function Dashboard() {
   const handlePlaylistClick = (playlistId: string) => {
     setIsPlaylistLoading(true);
     spotifyService.getPlaylist(playlistId).then((data) => {
-      console.log(data)
       console.log(data)
       setSelectedPlaylist(data);
       setIsPlaylistLoading(false);
