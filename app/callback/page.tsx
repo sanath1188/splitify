@@ -2,10 +2,9 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import SpotifyWebApi from 'spotify-web-api-js';
+import spotifyService from '../services/spotify.service';
 import useUserStore from '@/lib/store/useUserStore';
 
-const spotifyApi = new SpotifyWebApi();
 
 const Callback: React.FC = () => {
   const router = useRouter();
@@ -22,9 +21,9 @@ const Callback: React.FC = () => {
     const accessToken = hash.access_token;
 
     if (accessToken) {
-      spotifyApi.setAccessToken(accessToken);
+      spotifyService.setAccessToken(accessToken);
 
-      spotifyApi.getMe().then((userData: any) => {
+      spotifyService.getCurrentUser().then((userData: any) => {
         setUser(userData);
         setAccessToken(accessToken);
         console.log(userData);

@@ -5,10 +5,8 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import useUserStore from '@/lib/store/useUserStore';
 import { Badge } from '@/components/ui/badge';
 import React, { useEffect, useState } from 'react';
-import SpotifyWebApi from 'spotify-web-api-js';
 import { Tooltip } from '@/components/ui/tooltip'; // Assuming you have a Tooltip component
-
-const spotifyApi = new SpotifyWebApi();
+import spotifyService from '../services/spotify.service';
 
 export default function Dashboard() {
   const [playlists, setPlaylists] = useState<any[]>([]);
@@ -23,10 +21,10 @@ export default function Dashboard() {
       console.log("accessToken", accessToken);
       console.log("user", user);
 
-      spotifyApi.setAccessToken(accessToken);
+      spotifyService.setAccessToken(accessToken);
 
       // Fetch user's playlists
-      spotifyApi.getUserPlaylists().then((data) => {
+      spotifyService.getUserPlaylists().then((data) => {
         const fetchedPlaylists = data.items
           .filter((playlist: any) => playlist !== null)
           .map((playlist: any) => playlist.id);
@@ -34,7 +32,7 @@ export default function Dashboard() {
         // Fetch full details for each playlist
         Promise.all(
           fetchedPlaylists.map((playlistId: string) =>
-            spotifyApi.getPlaylist(playlistId)
+            spotifyService.getPlaylist(playlistId)
           )
         ).then((detailedPlaylists) => {
           setPlaylists(detailedPlaylists);
@@ -45,7 +43,7 @@ export default function Dashboard() {
 
   const handlePlaylistClick = (playlistId: string) => {
     // Fetch details of the selected playlist
-    spotifyApi.getPlaylist(playlistId).then((data) => {
+    spotifyService.getPlaylist(playlistId).then((data) => {
       console.log(data)
       setSelectedPlaylist(data);
     });
