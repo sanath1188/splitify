@@ -8,6 +8,11 @@ import { PlaylistBadges } from '../components/playlists/PlaylistBadges';
 import { PlaylistCard } from '../components/playlists/PlaylistCard';
 import { TracksTable } from '../components/playlists/TracksTable';
 import { SpotifyPlaylist, SpotifyTrack } from '../types/spotify';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Table, TableBody, TableHeader, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
   const [playlists, setPlaylists] = useState<SpotifyPlaylist[]>([]);
@@ -17,9 +22,10 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isPlaylistLoading, setIsPlaylistLoading] = useState(false);
   const [showTracks, setShowTracks] = useState(false);
-  const [currentTracks, setCurrentTracks] = useState<SpotifyTrack[]>([]);
+  const [currentTracks, setCurrentTracks] = useState<any[]>([]);
   const [currentOffset, setCurrentOffset] = useState(0);
   const LIMIT = 50;
+  const [analyzedTracks, setAnalyzedTracks] = useState<SpotifyTrack[]>([]);
 
   useEffect(() => {
     if (accessToken) {
@@ -99,6 +105,11 @@ export default function Dashboard() {
     }
   };
 
+  const handleAnalysisComplete = (tracks: SpotifyTrack[]) => {
+    setAnalyzedTracks(tracks);
+    setShowTracks(true);
+  };
+
   return (
     <div className="container max-w-6xl mx-auto py-6">
       {user ? (
@@ -131,20 +142,71 @@ export default function Dashboard() {
               </div>
             ) : selectedPlaylist && (
               <div className="mt-8 grid gap-6">
-                <PlaylistCard 
-                  playlist={selectedPlaylist}
-                  onViewTracks={handleViewTracks}
-                />
+                <Card>
+                  <CardHeader className="flex flex-row items-center gap-4">
+                    <PlaylistCard 
+                      playlist={selectedPlaylist}
+                      onViewTracks={handleViewTracks}
+                      onAnalysisComplete={handleAnalysisComplete}
+                    />
+                   
+                  </CardHeader>
+                </Card>
 
                 {showTracks && (
-                  <TracksTable 
-                    tracks={currentTracks}
-                    currentOffset={currentOffset}
-                    limit={LIMIT}
-                    total={selectedPlaylist.tracks.total}
-                    onPrevPage={handlePrevPage}
-                    onNextPage={handleNextPage}
-                  />
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Tracks</CardTitle>
+                      <CardDescription>
+                        Showing {currentOffset + 1}-{Math.min(currentOffset + LIMIT, selectedPlaylist.tracks.total)} of {selectedPlaylist.tracks.total} tracks
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Title</TableHead>
+                            <TableHead>Artist</TableHead>
+                            <TableHead>Album</TableHead>
+                            <TableHead>Duration</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {currentTracks.map((track) => (
+                            <TableRow key={track.track.id}>
+                              <TableCell>{track.track.name}</TableCell>
+                              <TableCell>{track.track.artists.map((a: any) => a.name).join(', ')}</TableCell>
+                              <TableCell>{track.track.album.name}</TableCell>
+                              <TableCell>
+                                {Math.floor(track.track.duration_ms / 60000)}:
+                                {String(Math.floor((track.track.duration_ms % 60000) / 1000)).padStart(2, '0')}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                    <CardFooter className="flex justify-end space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePrevPage}
+                        disabled={currentOffset === 0}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleNextPage}
+                        disabled={currentOffset + LIMIT >= selectedPlaylist.tracks.total}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
                 )}
               </div>
             )}

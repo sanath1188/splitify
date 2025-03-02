@@ -3,18 +3,29 @@ import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/ca
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { SpotifyPlaylist, SpotifyTrack } from '@/app/types/spotify';
-import { Download } from 'lucide-react';
+import { Download, LineChart } from 'lucide-react';
 import { useState } from 'react';
 import spotifyService from '@/app/services/spotify.service';
+import { addDays } from "date-fns";
+import { DateRange } from "react-day-picker";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { DatePickerWithRange } from '../ui/date-range-picker';
 
 interface PlaylistCardProps {
   playlist: SpotifyPlaylist;
   onViewTracks: () => void;
+  onAnalysisComplete: (tracks: SpotifyTrack[]) => void;
 }
 
-export function PlaylistCard({ playlist, onViewTracks }: PlaylistCardProps) {
+export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: PlaylistCardProps) {
   const [isFetchingAll, setIsFetchingAll] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -365),
+    to: new Date(),
+  });
+  const [showAnalyzeHint, setShowAnalyzeHint] = useState(true);
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -92,6 +103,18 @@ export function PlaylistCard({ playlist, onViewTracks }: PlaylistCardProps) {
     return allTracks;
   };
 
+  const handleAnalyze = async () => {
+    const tracks = await fetchAllTracks();
+    if (tracks && dateRange?.from && dateRange?.to) {
+      const filteredTracks = tracks.filter(item => {
+        const releaseDate = new Date(item.track.album.release_date);
+        return releaseDate >= dateRange.from! && releaseDate <= dateRange.to!;
+      });
+      onAnalysisComplete(filteredTracks);
+    }
+    setShowAnalyzeHint(false);
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center gap-4">
@@ -110,30 +133,46 @@ export function PlaylistCard({ playlist, onViewTracks }: PlaylistCardProps) {
             className="text-sm text-muted-foreground"
             dangerouslySetInnerHTML={{ __html: playlist.description || 'No description' }}
           />
-          <div className="flex items-center gap-2 !mt-4">
-            <Badge variant="secondary">
-              {playlist.tracks.total} tracks
-            </Badge>
-            <Badge variant="outline">
-              {playlist.public ? 'Public' : 'Private'}
-            </Badge>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={onViewTracks}
-            >
-              View Tracks
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchAllTracks}
-              disabled={isFetchingAll}
-              className="gap-2"
-            >
-              <Download className="h-4 w-4" />
-              {isFetchingAll ? `Fetching ${progress}%` : 'Fetch All'}
-            </Button>
+          <div className="flex flex-col gap-4 !mt-4">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">
+                {playlist.tracks.total} tracks
+              </Badge>
+              <Badge variant="outline">
+                {playlist.public ? 'Public' : 'Private'}
+              </Badge>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={onViewTracks}
+              >
+                View Tracks
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAnalyze}
+                disabled={isFetchingAll}
+                className="gap-2"
+              >
+                <LineChart className="h-4 w-4" />
+                {isFetchingAll ? `Analyzing ${progress}%` : 'Analyze'}
+              </Button>
+            </div>
+            
+            {showAnalyzeHint && (
+              <Alert variant="default" className="bg-muted">
+                <InfoCircledIcon className="h-4 w-4" />
+                <AlertDescription>
+                  Analyze the playlist to unlock filtering and insights
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <DatePickerWithRange 
+              date={dateRange}
+              onDateChange={setDateRange}
+            />
           </div>
         </div>
       </CardHeader>
