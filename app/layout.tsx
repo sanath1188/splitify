@@ -19,7 +19,7 @@ const lato = localFont({
   weight: "100 900",
 });
 export const metadata: Metadata = {
-  title: "Retrofy",
+  title: "Splitify",
   description: "Split your large Spotify playlists!",
 };
 

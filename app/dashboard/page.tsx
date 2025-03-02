@@ -154,7 +154,7 @@ export default function Dashboard() {
         <div className="flex items-center justify-center h-[calc(100vh-200px)]">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Loading user data...</span>
+            <span>Login to see your playlists...</span>
           </div>
         </div>
       )}

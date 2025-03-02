@@ -82,12 +82,17 @@ class SpotifyService {
 
   async getPlaylistTracks(playlistId: string, offset: number = 0, limit: number = 50) {
     try {
-      return await this.spotifyApi.getPlaylistTracks(playlistId, {
+      const response = await this.spotifyApi.getPlaylistTracks(playlistId, {
         offset,
         limit,
+        // fields: 'items(track(id,name,duration_ms,artists(name),album(name))),total'
       });
-    } catch (error) {
-      this.handleError(error);
+      return response;
+    } catch (error: any) {
+      if (error.status === 429) {
+        error.headers = error.response?.headers;
+      }
+      throw error;
     }
   }
 }
