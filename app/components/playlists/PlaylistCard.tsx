@@ -11,6 +11,8 @@ import { DateRange } from "react-day-picker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
 import { DatePickerWithRange } from '../ui/date-range-picker';
+import { motion } from "framer-motion";
+import { Sparkles, Clock, Music2, Calendar } from "lucide-react";
 
 interface PlaylistCardProps {
   playlist: SpotifyPlaylist;
@@ -116,66 +118,136 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center gap-4">
-        <div className="relative w-[150px] h-[150px]">
-          <Image
-            className="object-cover rounded-md"
-            src={playlist.images[0]?.url}
-            alt={playlist.name}
-            fill
-            unoptimized
-          />
-        </div>
-        <div className="space-y-1">
-          <CardTitle className="text-2xl">{playlist.name}</CardTitle>
-          <CardDescription 
-            className="text-sm text-muted-foreground"
-            dangerouslySetInnerHTML={{ __html: playlist.description || 'No description' }}
-          />
-          <div className="flex flex-col gap-4 !mt-4">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">
-                {playlist.tracks.total} tracks
-              </Badge>
-              <Badge variant="outline">
-                {playlist.public ? 'Public' : 'Private'}
-              </Badge>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={onViewTracks}
-              >
-                View Tracks
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAnalyze}
-                disabled={isFetchingAll}
-                className="gap-2"
-              >
-                <LineChart className="h-4 w-4" />
-                {isFetchingAll ? `Analyzing ${progress}%` : 'Analyze'}
-              </Button>
-            </div>
-            
-            {showAnalyzeHint && (
-              <Alert variant="default" className="bg-muted">
-                <InfoCircledIcon className="h-4 w-4" />
-                <AlertDescription>
-                  Analyze the playlist to unlock filtering and insights
-                </AlertDescription>
-              </Alert>
+    <div className="grid gap-6">
+      {/* Main Card */}
+      <Card className="overflow-hidden bg-gradient-to-br from-background to-muted">
+        <div className="flex flex-col lg:flex-row lg:items-stretch">
+          {/* Left Section - Cover Art */}
+          <div className="relative lg:w-[400px] aspect-square">
+            {playlist.images[0]?.url && (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-background/50 backdrop-blur-sm z-10" />
+                <div className="relative w-full h-full">
+                  <Image
+                    className="object-cover rounded-md"
+                    src={playlist.images[0]?.url}
+                    alt={playlist.name}
+                    fill
+                    unoptimized
+                    priority
+                  />
+                </div>
+              </>
             )}
+            
+            {/* Overlay Stats */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 flex flex-col justify-end bg-gradient-to-t from-background/90 via-background/50 to-transparent z-20">
+              <div className="space-y-4">
+                <h2 className="text-4xl font-bold tracking-tight">{playlist.name}</h2>
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex items-center gap-2">
+                    <Music2 className="h-4 w-4 text-primary" />
+                    <span className="text-sm">{playlist.tracks.total} tracks</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span className="text-sm">
+                      {Math.floor(playlist.tracks.total * 3.5)} mins
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-            <DatePickerWithRange 
-              date={dateRange}
-              onDateChange={setDateRange}
-            />
+          {/* Right Section - Controls */}
+          <div className="flex-1 p-8 flex flex-col">
+            <div className="space-y-8">
+              {/* Description */}
+              {playlist.description && (
+                <div className="prose prose-sm dark:prose-invert">
+                  <div dangerouslySetInnerHTML={{ __html: playlist.description }} />
+                </div>
+              )}
+
+              {/* Date Range */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>Filter by Release Date</span>
+                </div>
+                <DatePickerWithRange 
+                  date={dateRange}
+                  onDateChange={setDateRange}
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    size="lg"
+                    onClick={handleAnalyze}
+                    disabled={isFetchingAll}
+                    className="relative group"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      {isFetchingAll ? `Analyzing ${progress}%` : 'Analyze Playlist'}
+                    </span>
+                    {!isFetchingAll && (
+                      <span className="absolute inset-0 bg-primary/10 rounded-lg transform scale-0 group-hover:scale-100 transition-transform" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={onViewTracks}
+                  >
+                    View Tracks
+                  </Button>
+                </div>
+
+                {/* Analysis Progress */}
+                {isFetchingAll && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-2"
+                  >
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                      <motion.div 
+                        className="h-full bg-primary rounded-full"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress}%` }}
+                        transition={{ duration: 0.5 }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Fetching tracks... {progress}% complete
+                    </p>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Analysis Hint */}
+              {showAnalyzeHint && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Alert className="bg-primary/5 border border-primary/10">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <AlertDescription className="text-sm text-primary">
+                      Analyze your playlist to discover insights and create filtered views
+                    </AlertDescription>
+                  </Alert>
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
-      </CardHeader>
-    </Card>
+      </Card>
+    </div>
   );
 } 
