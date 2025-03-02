@@ -14,7 +14,6 @@ export default function Dashboard() {
   const user = useUserStore((state) => state.user);
   const accessToken = useUserStore((state) => state.accessToken);
 
-  // UseEffect to run when accessToken becomes available
   useEffect(() => {
     // Wait for accessToken to be available before proceeding
     if (accessToken) {
@@ -25,9 +24,14 @@ export default function Dashboard() {
 
       // Fetch user's playlists
       spotifyService.getUserPlaylists().then((data) => {
-        const fetchedPlaylists = data.items
+        const myPlaylists = data.items.filter((playlist: any) => playlist?.owner.id === user.id);
+
+        console.log(myPlaylists)
+        const fetchedPlaylists = myPlaylists
           .filter((playlist: any) => playlist !== null)
           .map((playlist: any) => playlist.id);
+          console.log(fetchedPlaylists)
+
 
         // Fetch full details for each playlist
         Promise.all(
@@ -35,6 +39,8 @@ export default function Dashboard() {
             spotifyService.getPlaylist(playlistId)
           )
         ).then((detailedPlaylists) => {
+          console.log(detailedPlaylists)
+          // const sortedPlaylists = detailedPlaylists.sort((a,b) =>  b?.tracks.total - a?.tracks.total)
           setPlaylists(detailedPlaylists);
         });
       });

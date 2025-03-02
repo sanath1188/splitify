@@ -18,14 +18,12 @@ class SpotifyService {
 
   private handleError(error: any) {
     if (error.status === 401) {
-      // Clear the store
       useUserStore.getState().setUser(null);
-      useUserStore.getState().setAccessToken(null);
-      // Clear localStorage
+      useUserStore.getState().setAccessToken("");
       localStorage.removeItem('spotify-user-store');
-      // Redirect to home page
       window.location.href = '/';
     }
+
     throw error;
   }
 
@@ -43,7 +41,32 @@ class SpotifyService {
 
   async getUserPlaylists() {
     try {
-      return await this.spotifyApi.getUserPlaylists();
+      let allPlaylists: SpotifyApi.PlaylistObjectSimplified[] = [];
+      let offset = 0;
+      const limit = 50;
+      let total = 0;
+
+      // Make first request to get total count
+      const initialResponse = await this.spotifyApi.getUserPlaylists("", { limit, offset });
+      total = initialResponse.total;
+      allPlaylists = [...initialResponse.items];
+
+      // Calculate how many additional requests we need
+      const remainingRequests = Math.ceil((total - limit) / limit);
+
+      // Make additional requests if needed
+      for (let i = 0; i < remainingRequests; i++) {
+        offset += limit;
+        const response = await this.spotifyApi.getUserPlaylists("", { limit, offset });
+        allPlaylists = [...allPlaylists, ...response.items];
+      }
+
+      return {
+        items: allPlaylists,
+        total,
+        limit,
+        offset: 0
+      };
     } catch (error) {
       this.handleError(error);
     }
