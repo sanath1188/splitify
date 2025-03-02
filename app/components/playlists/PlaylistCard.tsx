@@ -153,32 +153,16 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
         await spotifyService.addTracksToPlaylist(newPlaylist.id, batch);
       }
       
-      toast.success("Playlist created!", {
-        description: `Created "${playlistName}" with ${filteredTracks.length} tracks`,
-      });
+      toast(`Created playlist "${playlistName}" with ${filteredTracks.length} tracks`);
+      
+      // Also log to console for debugging
+      console.log(`Created playlist "${playlistName}" with ${filteredTracks.length} tracks`);
       
     } catch (error: any) {
       console.error('Error creating playlist:', error);
       
-      // Check for specific error types
-      if (error?.message?.includes("Insufficient client scope") || 
-          error?.status === 403) {
-        toast.error("Permission denied", {
-          description: "You need to re-login with additional permissions to create playlists.",
-          action: {
-            label: "Logout",
-            onClick: () => {
-              // Clear user data and redirect to login
-              localStorage.removeItem('spotify-user-store');
-              window.location.href = '/';
-            }
-          }
-        });
-      } else {
-        toast.error("Error creating playlist", {
-          description: "There was an error creating your playlist. Please try again.",
-        });
-      }
+      // Simple error toast
+      toast.error(`Error: ${error.message || 'Failed to create playlist'}`);
     } finally {
       setIsCreatingPlaylist(false);
     }

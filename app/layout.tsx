@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import "./font.css";
+import { Toaster } from 'sonner';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,6 +35,7 @@ export default function RootLayout({
         className={`${lato.variable} ${lato.variable} antialiased`}
       >
         {children}
+        <Toaster position="top-center" />
       </body>
     </html>
   );
