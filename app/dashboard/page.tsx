@@ -12,6 +12,8 @@ import Image from 'next/image';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Dashboard() {
   const [playlists, setPlaylists] = useState<any[]>([]);
@@ -20,6 +22,10 @@ export default function Dashboard() {
   const accessToken = useUserStore((state) => state.accessToken);
   const [isLoading, setIsLoading] = useState(true);
   const [isPlaylistLoading, setIsPlaylistLoading] = useState(false);
+  const [showTracks, setShowTracks] = useState(false);
+  const [currentTracks, setCurrentTracks] = useState<any[]>([]);
+  const [currentOffset, setCurrentOffset] = useState(0);
+  const LIMIT = 50; // Spotify's default limit
 
   useEffect(() => {
     if (accessToken) {
@@ -60,9 +66,43 @@ export default function Dashboard() {
     setIsPlaylistLoading(true);
     spotifyService.getPlaylist(playlistId).then((data) => {
       console.log(data)
+      console.log(data)
       setSelectedPlaylist(data);
       setIsPlaylistLoading(false);
     });
+  };
+
+  const fetchTracks = async (playlistId: string, offset: number) => {
+    try {
+      const response = await spotifyService.getPlaylistTracks(playlistId, offset, LIMIT);
+      setCurrentTracks(response.items);
+      return response;
+    } catch (error) {
+      console.error('Error fetching tracks:', error);
+    }
+  };
+
+  const handleViewTracks = async () => {
+    setShowTracks(true);
+    if (selectedPlaylist) {
+      await fetchTracks(selectedPlaylist.id, 0);
+    }
+  };
+
+  const handlePrevPage = async () => {
+    if (currentOffset >= LIMIT && selectedPlaylist) {
+      const newOffset = currentOffset - LIMIT;
+      setCurrentOffset(newOffset);
+      await fetchTracks(selectedPlaylist.id, newOffset);
+    }
+  };
+
+  const handleNextPage = async () => {
+    if (selectedPlaylist && currentOffset + LIMIT < selectedPlaylist.tracks.total) {
+      const newOffset = currentOffset + LIMIT;
+      setCurrentOffset(newOffset);
+      await fetchTracks(selectedPlaylist.id, newOffset);
+    }
   };
 
   return (
@@ -136,17 +176,80 @@ export default function Dashboard() {
                         className="text-sm text-muted-foreground"
                         dangerouslySetInnerHTML={{ __html: selectedPlaylist.description || 'No description' }}
                       />
-                      <div className="flex items-center gap-2 !mt-2">
+                      <div className="flex items-center gap-2 !mt-4">
                         <Badge variant="secondary">
                           {selectedPlaylist.tracks.total} tracks
                         </Badge>
                         <Badge variant="outline">
                           {selectedPlaylist.public ? 'Public' : 'Private'}
                         </Badge>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleViewTracks}
+                        >
+                          View Tracks
+                        </Button>
                       </div>
                     </div>
                   </CardHeader>
                 </Card>
+
+                {showTracks && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Tracks</CardTitle>
+                      <CardDescription>
+                        Showing {currentOffset + 1}-{Math.min(currentOffset + LIMIT, selectedPlaylist.tracks.total)} of {selectedPlaylist.tracks.total} tracks
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Title</TableHead>
+                            <TableHead>Artist</TableHead>
+                            <TableHead>Album</TableHead>
+                            <TableHead>Duration</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {currentTracks.map((track) => (
+                            <TableRow key={track.track.id}>
+                              <TableCell>{track.track.name}</TableCell>
+                              <TableCell>{track.track.artists.map((a: any) => a.name).join(', ')}</TableCell>
+                              <TableCell>{track.track.album.name}</TableCell>
+                              <TableCell>
+                                {Math.floor(track.track.duration_ms / 60000)}:
+                                {String(Math.floor((track.track.duration_ms % 60000) / 1000)).padStart(2, '0')}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </CardContent>
+                    <CardFooter className="flex justify-end space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePrevPage}
+                        disabled={currentOffset === 0}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleNextPage}
+                        disabled={currentOffset + LIMIT >= selectedPlaylist.tracks.total}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                )}
               </div>
             )}
           </div>

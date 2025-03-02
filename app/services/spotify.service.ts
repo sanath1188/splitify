@@ -79,6 +79,17 @@ class SpotifyService {
       this.handleError(error);
     }
   }
+
+  async getPlaylistTracks(playlistId: string, offset: number = 0, limit: number = 50) {
+    try {
+      return await this.spotifyApi.getPlaylistTracks(playlistId, {
+        offset,
+        limit,
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
 }
 
 export default SpotifyService.getInstance();
