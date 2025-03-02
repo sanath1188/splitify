@@ -23,6 +23,8 @@ interface PlaylistCardProps {
 export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: PlaylistCardProps) {
   const [isFetchingAll, setIsFetchingAll] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [analyzedTracks, setAnalyzedTracks] = useState<SpotifyTrack[]>([]);
+  const [showDateRange, setShowDateRange] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: addDays(new Date(), -365),
     to: new Date(),
@@ -107,14 +109,23 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
 
   const handleAnalyze = async () => {
     const tracks = await fetchAllTracks();
-    if (tracks && dateRange?.from && dateRange?.to) {
-      const filteredTracks = tracks.filter(item => {
+    if (tracks) {
+      setAnalyzedTracks(tracks);
+      setShowDateRange(true);
+      setShowAnalyzeHint(false);
+    }
+  };
+
+  const handleBranchPlaylist = () => {
+    console.log("here")
+    if (analyzedTracks.length && dateRange?.from && dateRange?.to) {
+      const filteredTracks = analyzedTracks.filter(item => {
         const releaseDate = new Date(item.track.album.release_date);
         return releaseDate >= dateRange.from! && releaseDate <= dateRange.to!;
       });
+      console.log(filteredTracks)
       onAnalysisComplete(filteredTracks);
     }
-    setShowAnalyzeHint(false);
   };
 
   return (
@@ -169,18 +180,18 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
 
               {/* Analysis Hint */}
               {showAnalyzeHint && (
-                  <Alert className="bg-primary/5 border border-primary/10 !mt-5">
-                    <div className="flex items-center gap-2 w-full justify-center">
-                      <Sparkles className="h-4 w-4 text-primary shrink-0" />
-                      <AlertDescription className="text-sm text-primary my-auto">
-                        Analyze your playlist to discover insights and create filtered views
-                      </AlertDescription>
-                    </div>
-                  </Alert>
+                <Alert className="bg-primary/5 border border-primary/10">
+                  <div className="flex items-center gap-2 w-full justify-center">
+                    <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                    <AlertDescription className="text-sm text-primary my-auto">
+                      Analyze your playlist to discover insights and create filtered views
+                    </AlertDescription>
+                  </div>
+                </Alert>
               )}
 
               {/* Actions */}
-              <div className="!mt-5">
+              <div className="space-y-4">
                 <div className="flex flex-wrap gap-3">
                   <Button
                     size="lg"
@@ -216,25 +227,45 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete }: Pla
                         transition={{ duration: 0.5 }}
                       />
                     </div>
-                    <p className="text-xs text-muted-foreground text-center">
+                    <p className="text-xs text-muted-foreground text-center mt-2">
                       Fetching tracks... {progress}% complete
                     </p>
                   </div>
                 )}
               </div>
 
-              {/* Date Range */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>Filter by Release Date</span>
-                </div>
-                <DatePickerWithRange 
-                  date={dateRange}
-                  onDateChange={setDateRange}
-                />
-              </div>
-              
+              {/* Date Range - Only shown after analysis */}
+              {showDateRange && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>Filter by Release Date</span>
+                    </div>
+                    <DatePickerWithRange 
+                      date={dateRange}
+                      onDateChange={setDateRange}
+                    />
+                  </div>
+                  
+                  {/* Branch Playlist Button */}
+                  <Button
+                    size="lg"
+                    onClick={handleBranchPlaylist}
+                    className="w-full"
+                    variant="secondary"
+                  >
+                    <span className="flex items-center gap-2">
+                      <LineChart className="h-4 w-4" />
+                      Branch Playlist by Date Range
+                    </span>
+                  </Button>
+                </motion.div>
+              )}
             </div>
           </div>
         </div>
