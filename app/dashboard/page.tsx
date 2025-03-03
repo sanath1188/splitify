@@ -33,28 +33,29 @@ export default function Dashboard() {
 
       setIsLoading(true);
       spotifyService.getUserPlaylists().then((data) => {
-        const myPlaylists = data.items.filter((playlist: any) => playlist?.owner.id === user.id);
+        const myPlaylists = data.items
+        .filter((playlist: any) => playlist?.owner.id === user.id);
 
         console.log(myPlaylists)
-        const fetchedPlaylists = myPlaylists
-          .filter((playlist: any) => playlist !== null)
-          .map((playlist: any) => playlist.id);
-          console.log(fetchedPlaylists)
+        // const fetchedPlaylists = myPlaylists
+        //   .filter((playlist: any) => playlist !== null)
+        //   .map((playlist: any) => playlist.id);
+        //   console.log(fetchedPlaylists)
 
-        Promise.all(
-          fetchedPlaylists.map((playlistId: string) =>
-            spotifyService.getPlaylist(playlistId)
-          )
-        ).then((detailedPlaylists) => {
-          console.log(detailedPlaylists)
-          const sortedPlaylists = detailedPlaylists.sort((a,b) =>  b?.tracks.total - a?.tracks.total)
+        // Promise.all(
+        //   fetchedPlaylists.map((playlistId: string) =>
+        //     spotifyService.getPlaylist(playlistId)
+        //   )
+        // ).then((detailedPlaylists) => {
+          // console.log(detailedPlaylists)
+          const sortedPlaylists = myPlaylists.sort((a,b) =>  b?.tracks.total - a?.tracks.total)
           setPlaylists(sortedPlaylists);
           setIsLoading(false);
           
           if (sortedPlaylists.length > 0) {
-            handlePlaylistClick(sortedPlaylists[0].id);
+            // handlePlaylistClick(sortedPlaylists[0].id);
           }
-        });
+        // });
       });
     }
   }, [accessToken]);
