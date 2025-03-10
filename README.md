@@ -43,9 +43,10 @@ cd splitify
 npm install
 ```
 
-3. Create a `.env.local` file in the root directory:
+3. Create a `.env` file in the root directory:
 ```env
 NEXT_PUBLIC_SPOTIFY_CLIENT_KEY=your_spotify_client_id
+PORT=your_desired_port
 ```
 
 4. Start the development server:
