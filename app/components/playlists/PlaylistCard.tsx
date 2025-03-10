@@ -39,13 +39,27 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete, onPla
   const [isFetchingAll, setIsFetchingAll] = useState(false);
   const [progress, setProgress] = useState(0);
   const [analyzedTracks, setAnalyzedTracks] = useState<SpotifyTrack[]>([]);
-  const [showDateRange, setShowDateRange] = useState(false);
   const [fromDate, setFromDate] = useState<Date | undefined>(addDays(new Date(), -365));
   const [toDate, setToDate] = useState<Date | undefined>(new Date());
   const [showAnalyzeHint, setShowAnalyzeHint] = useState(true);
   const [isCreatingPlaylist, setIsCreatingPlaylist] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  // New state to manage active filter pills – extensible to add more filters later
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+
+  // Define your available filter options – more options can be added here
+  const filterOptions = [
+    { key: 'releaseDate', label: 'Release Date' }
+  ];
+
+  const toggleFilter = (filter: string) => {
+    setSelectedFilters(prev =>
+      prev.includes(filter)
+        ? prev.filter(item => item !== filter)
+        : [...prev, filter]
+    );
+  };
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -127,7 +141,7 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete, onPla
     const tracks = await fetchAllTracks();
     if (tracks) {
       setAnalyzedTracks(tracks);
-      setShowDateRange(true);
+      // Remove the old showDateRange call to let the user select the filter pill
       setShowAnalyzeHint(false);
     }
   };
@@ -375,76 +389,89 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete, onPla
                     </p>
                   </div>
                 )}
-
               </div>
 
-              {/* Date Range - Only shown after analysis */}
-              {showDateRange && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-6 w-full"
-                >
-                  <div className="space-y-4 w-full">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 text-primary" />
-                      <span>Filter by Release Date</span>
-                    </div>
-                    
-                    {/* Date pickers side by side */}
-                    <div className="flex gap-4 w-full">
-                      <div className="flex-1 space-y-2">
-                        <label className="text-sm text-muted-foreground">From</label>
-                        <DateTimePicker
-                          value={fromDate}
-                          onChange={setFromDate}
-                          hideTime
-                          max={toDate}
-                          clearable
-                          classNames={{
-                            trigger: "w-full bg-background/50 border-primary/10"
-                          }}
-                        />
-                      </div>
-                      
-                      <div className="flex-1 space-y-2">
-                        <label className="text-sm text-muted-foreground">To</label>
-                        <DateTimePicker
-                          value={toDate}
-                          onChange={setToDate}
-                          hideTime
-                          min={fromDate}
-                          max={new Date()}
-                          clearable
-                          classNames={{
-                            trigger: "w-full bg-background/50 border-primary/10"
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                                    {/* Branch Playlist Button */}
-                <Button
-                  size="lg"
-                  onClick={handleBranchPlaylist}
-                  className="w-full"
-                  variant="secondary"
-                  disabled={!fromDate || !toDate || isCreatingPlaylist}
-                >
-                  {isCreatingPlaylist ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Creating Playlist...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <LineChart className="h-4 w-4" />
-                      Create Filtered Playlist
-                    </span>
-                  )}
-                </Button>
+              {/* Filter Pills & Filter UI – only visible after analysis */}
+              {analyzedTracks.length > 0 && (
+                <>
+                  <div className="!mt-5 cursor-pointer flex flex-wrap gap-2">
+                    {filterOptions.map(filter => (
+                      <Button
+                        key={filter.key}
+                        variant={selectedFilters.includes(filter.key) ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => toggleFilter(filter.key)}
+                        className="rounded-full"
+                      >
+                        {filter.label}
+                      </Button>
+                    ))}
                   </div>
-                </motion.div>
+
+                  {selectedFilters.includes('releaseDate') && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="!mt-3 w-full"
+                    >
+                      <div className="space-y-4 w-full">
+                        
+                        {/* Date pickers side by side */}
+                        <div className="flex gap-4 w-full">
+                          <div className="flex-1 space-y-2">
+                            <label className="text-sm text-muted-foreground">From</label>
+                            <DateTimePicker
+                              value={fromDate}
+                              onChange={setFromDate}
+                              hideTime
+                              max={toDate}
+                              clearable
+                              classNames={{
+                                trigger: "w-full bg-background/50 border-primary/10"
+                              }}
+                            />
+                          </div>
+                          
+                          <div className="flex-1 space-y-2">
+                            <label className="text-sm text-muted-foreground">To</label>
+                            <DateTimePicker
+                              value={toDate}
+                              onChange={setToDate}
+                              hideTime
+                              min={fromDate}
+                              max={new Date()}
+                              clearable
+                              classNames={{
+                                trigger: "w-full bg-background/50 border-primary/10"
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Branch Playlist Button */}
+                        <Button
+                          size="lg"
+                          onClick={handleBranchPlaylist}
+                          className="w-full"
+                          variant="secondary"
+                          disabled={!fromDate || !toDate || isCreatingPlaylist}
+                        >
+                          {isCreatingPlaylist ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Creating Playlist...
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-2">
+                              <LineChart className="h-4 w-4" />
+                              Create Filtered Playlist
+                            </span>
+                          )}
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -452,4 +479,4 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete, onPla
       </Card>
     </div>
   );
-} 
+}
