@@ -19,7 +19,10 @@ const Header: React.FC = () => {
     'user-read-private', 
     'playlist-read-private', 
     'playlist-modify-public',
-    'playlist-modify-private'
+    'playlist-modify-private',
+    'user-top-read',
+    'user-library-modify',
+    'user-library-read',
   ];
   
   // Only get the user from the store, don't get setUser

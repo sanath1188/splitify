@@ -124,6 +124,14 @@ class SpotifyService {
       this.handleError(error);
     }
   }
+
+  async getSeveralTracksAudioFeatures(trackIds: Array<string>) {
+    try {
+      return await this.spotifyApi.getAudioFeaturesForTracks(trackIds);
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
 }
 
 export default SpotifyService.getInstance();

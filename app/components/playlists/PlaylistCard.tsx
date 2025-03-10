@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import lodash from "lodash";
 
 interface PlaylistCardProps {
   playlist: SpotifyPlaylist;
@@ -62,6 +63,24 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete, onPla
   };
 
   const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const fetchAllTrackFeatures = async (trackIds: Array<string>) => {
+    setIsFetchingAll(true);
+    setProgress(0);
+
+    const chunkedTrackIds = lodash.chunk(trackIds, 50);
+    let allTracks: SpotifyTrack[] = [];
+
+    for(const chunkedTrackId of chunkedTrackIds) {
+      const trackFeatures = await spotifyService.getSeveralTracksAudioFeatures(chunkedTrackId);
+      allTracks = [...allTracks, ...trackFeatures]
+    };
+
+    setIsFetchingAll(false);
+    setProgress(100);
+    
+    return allTracks;
+  }
 
   const fetchAllTracks = async () => {
     setIsFetchingAll(true);
@@ -139,6 +158,10 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete, onPla
 
   const handleAnalyze = async () => {
     const tracks = await fetchAllTracks();
+    const trackIds = tracks.map((track: any) => track.track.id);
+    // console.log(trackIds)
+    // const trackFeatures = await fetchAllTrackFeatures(trackIds);
+
     if (tracks) {
       setAnalyzedTracks(tracks);
       // Remove the old showDateRange call to let the user select the filter pill
@@ -392,9 +415,10 @@ export function PlaylistCard({ playlist, onViewTracks, onAnalysisComplete, onPla
               </div>
 
               {/* Filter Pills & Filter UI – only visible after analysis */}
-              {analyzedTracks.length > 0 && (
+              {analyzedTracks.length > 0 && !isFetchingAll && (
                 <>
-                  <div className="!mt-5 cursor-pointer flex flex-wrap gap-2">
+                  <div className='!mt-4 text-sm font-semibold'>Split your playlists by:</div>
+                  <div className="!mt-2 cursor-pointer flex flex-wrap gap-2">
                     {filterOptions.map(filter => (
                       <Button
                         key={filter.key}
