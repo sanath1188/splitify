@@ -59,6 +59,7 @@ npm run dev
 ### Environment Variables
 
 - `NEXT_PUBLIC_SPOTIFY_CLIENT_KEY`: Your Spotify Application Client ID
+- `PORT`: Your desired port to run the app on
 
 ## Project Structure
 
