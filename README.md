@@ -7,13 +7,13 @@ https://github.com/user-attachments/assets/e9fb3566-ffac-426e-9519-284cb1bf546d
 
 ## Features
 
-- 🎵 View all your Spotify playlists in one place
-- 📊 See detailed playlist information including track count and visibility
-- 📱 Modern, responsive interface with a clean design
-- 🔄 Paginated track viewing with efficient data loading
-- ⬇️ Bulk download capability for entire playlists
-- 🎨 Clean UI with dark/light mode support
-- 🔒 Secure authentication with Spotify
+- 🎵 View all your Spotify playlists in one place.
+- ⬇️ Bulk download capability for entire playlists.
+- 📊 Split playlists based on year range.
+- 📱 Modern, responsive interface with a clean design.
+- 🔄 Paginated track viewing with efficient data loading and fetching.
+- 🎨 Clean UI with dark/light mode support.
+- 🔒 Secure authentication with Spotify.
 
 ## Tech Stack
 
