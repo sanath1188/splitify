@@ -1,7 +1,9 @@
 # Splitify
 
 Splitify is a powerful Spotify playlist management tool that helps you organize and handle large playlists efficiently. Built with Next.js and the Spotify Web API, it provides a modern interface for viewing and managing your Spotify playlists.
-View demo here: https://drive.google.com/file/d/1u51Yr_Mp5wEHaXbKs7iQXZhY6xYKv7bU/view?usp=drive_link
+View demo here:
+https://github.com/user-attachments/assets/e9fb3566-ffac-426e-9519-284cb1bf546d
+
 
 ## Features
 
