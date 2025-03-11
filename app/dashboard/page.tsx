@@ -36,12 +36,6 @@ export default function Dashboard() {
         let myPlaylists = data.items
         .filter((playlist: any) => playlist?.owner.id === user.id);
 
-        const hiddenPlaylists = ['konjam sarakku, bit of love', 'shook', 'oru maadri nallarku la?', "we'll be alright <3", "let's make some babies? (tamil)",
-          'drunk telugu mama', 'drunk tamil mama', 'drunk in Hindi?', 'get drunk', 'thaa... pathukalam', "i'm a fucking loner"
-        ];
-
-        myPlaylists = myPlaylists.filter((playlist) => !hiddenPlaylists.includes(playlist.name))
-
         console.log(myPlaylists)
         // const fetchedPlaylists = myPlaylists
         //   .filter((playlist: any) => playlist !== null)
