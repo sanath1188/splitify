@@ -96,7 +96,7 @@ class SpotifyService {
     }
   }
 
-  async createPlaylist(userId: string, options: { 
+  async createPlaylist(userId: string, options: {
     name: string; 
     description?: string; 
     public?: boolean;
@@ -125,6 +125,7 @@ class SpotifyService {
     }
   }
 
+  // Fuck spotify for deprecating this. This now throws a 403 err.
   async getSeveralTracksAudioFeatures(trackIds: Array<string>) {
     try {
       return await this.spotifyApi.getAudioFeaturesForTracks(trackIds);
